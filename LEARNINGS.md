@@ -178,10 +178,17 @@ solution", or returned a wrong or malformed grid; Muse Spark hit Meta's
 5-minute limit on every puzzle. The tier now separates the frontier, and
 it measures the difference between line logic and deeper search.
 
-**Open.** Hard puzzles need low visual regularity as well as logical depth,
-e.g. random fills at a density that keeps them unique. A principled
-difficulty scale (search depth, branching needed) would make tiers
-comparable.
+**Then saw.** Foote and Krizanc also generate nonograms from random fills in
+"Nonogram: Complexity of Inference and Phase Transition Behavior" (2025,
+https://arxiv.org/abs/2507.07283), trying different probabilities for a
+cell to be filled. Krizanc confirmed by email (28 Sep 2026) that a
+probability of 0.5, which leaves about half the grid filled, fell in the
+hard region. Hard mode's grids are 49–60% filled, so they sit in that
+region.
+
+**Open.** Hard puzzles need low visual regularity as well as logical depth.
+Random fills near 50% density give both. A principled difficulty scale
+(search depth, branching needed) would make tiers comparable.
 
 ## 6. Provider limits become scores unless handled explicitly
 
@@ -313,6 +320,40 @@ share of puzzles solved at least once) would show whether a single miss is
 bad luck or a pattern. They would also tighten the ranges and make the
 format and effort-level comparisons measurable. The cost is about three
 times as much per variant: a candidate for a V2.0 Standard.
+
+## 14. An effort level on OpenRouter may not be a level the model has
+
+**Assumed.** The levels in OpenRouter's `supported_efforts` are the levels
+the model has, so `bench/refresh-effort-levels.ts` builds each ladder from
+that list.
+
+**Saw.** Qwen documents three `reasoning_effort` levels for Qwen3.8-Max: low,
+medium and xhigh (default). OpenRouter lists five for
+`qwen/qwen3.8-max-0902` (minimal to xhigh), and its docs say an unsupported
+level maps "to the nearest supported level". Nothing in the API says which
+native level a request got: the endpoint's `reasoning` is null and the
+generation record only reports tokens. Our runs fall into three token
+groups, which fits minimal → low and high → xhigh:
+
+| Sent | Avg tokens 5x5 / 10x10 / 15x15 | Solved |
+|---|---|---|
+| minimal | 3.1k / 36.7k / 39.9k | 18/30 |
+| low | 3.1k / 34.4k / 45.1k | 18/30 |
+| medium | 4.2k / 38.5k / 38.3k | 14/30 |
+| high | 4.7k / 30.1k / 55.9k | 18/30 |
+| xhigh | 5.6k / 32.6k / 58.6k | 18/30 |
+
+A Reddit reader asked why "Best" showed Qwen3.8 Max at minimal. It was the
+cheapest of four levels tied at 18/30, and was most likely Qwen's low.
+
+**Implication.** The pairs are an accidental repeat: the same native setting
+twice gave the same total with different per-size splits (low: 10x10 7 vs 8,
+15x15 1 vs 0), which is section 13's noise, measured.
+
+**Open.** Confirm the mapping with OpenRouter. Before running an effort
+ladder, check `supported_efforts` against the lab's own docs, and only run
+native levels (or label mapped ones on the site). Audit the other families
+for the same gap.
 
 ## Measurement notes
 
